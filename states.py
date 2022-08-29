@@ -29,9 +29,7 @@ class LoadData(ConfigState.State):
         self.finalize_config()
         df=self.read_data()
         synthetic_data =  self.generate_synthetic_data(df)
-        output_folder = f"{self.output_dir}/{self.config['result']['folder']}"
-        os.makedirs(f"{output_folder}")
-        output_file= f"{output_folder}/{self.config['result']['file']}"
+        output_file= f"{self.config['result']['file']}"
         self.store('output_file', output_file)
         self.store('original_data', df)
         self.store('synthetic_data', synthetic_data)

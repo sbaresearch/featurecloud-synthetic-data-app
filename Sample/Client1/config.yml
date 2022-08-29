@@ -1,0 +1,23 @@
+fc_synthetic_data: 
+  local_dataset:
+    data: data.csv
+    sep: ","
+  synthetic_data_vault:
+    model: GaussianCopula
+    number_of_rows: 1000
+    synthetize_fields:
+      - w-education
+      - medexp
+      - sol
+      - h-occupation
+      - method
+      - w-religion
+    categorical_fields:
+      - w-education
+      - medexp
+      - sol
+      - h-occupation
+      - method
+      - w-religion
+  result:
+    file: synthetic_data.csv

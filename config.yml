@@ -20,5 +20,4 @@ fc_synthetic_data:
       - method
       - w-religion
   result:
-    folder: data
     file: synthetic_data.csv
