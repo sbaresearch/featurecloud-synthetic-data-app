@@ -1,42 +1,49 @@
-from importlib.metadata import metadata
 from FeatureCloud.app.engine.app import app_state, AppState, Role, LogLevel
 from FeatureCloud.app.engine.app import State as op_state
-from numpy import number
-from CustomStates import ConfigState
 import pandas as pd
 from sdv import SDV
 from sdv import Metadata
 from sdv.tabular.copulagan import CopulaGAN
 from sdv.tabular.copulas import GaussianCopula
 from sdv.tabular.ctgan import CTGAN, TVAE
+import bios
 
-import os
+INPUT_DIR = 'mnt/input'
+OUTPUT_DIR = 'mnt/output'
+
+INITIAL_STATE = 'initial'
+WRITE_STATE = 'WriteSyntheticData'
+TERMINAL_STATE = 'terminal'
+
 
 # App name
-name="fc_synthetic_data"
+app_name="fc_synthetic_data"
 
 # FeatureCloud requires that apps define the at least the 'initial' state.
 # This state is executed after the app instance is started.
-@app_state('initial', role=Role.BOTH, app_name=name)
-class LoadData(ConfigState.State):
+@app_state(INITIAL_STATE)
+class InitialState(AppState):
 
     def register(self):
-        self.register_transition('WriteSyntheticData')  # We declare that 'terminal' state is accessible from the 'initial' state.
+        self.register_transition(WRITE_STATE)  
 
     def run(self):
-        self.lazy_init()
+        print('Loading config...')
         self.read_config()
-        self.finalize_config()
+        print('Loading data...') 
         df=self.read_data()
         synthetic_data =  self.generate_synthetic_data(df)
-        output_file= f"{self.output_dir}/{self.config['result']['file']}"
+        output_file= f"{OUTPUT_DIR}/{self.config['result']['file']}"
         self.store('output_file', output_file)
         self.store('original_data', df)
         self.store('synthetic_data', synthetic_data)
-        return 'WriteSyntheticData'  
+        return 'WriteSyntheticData'
+    
+    def read_config(self):
+        self.config = bios.read(f'{INPUT_DIR}/config.yml')[app_name]  
 
     def read_data(self):
-        file_name = self.load('input_files')['data'][0]
+        file_name = f"{INPUT_DIR}/{self.config['local_dataset']['data']}"
         format= file_name.split('.')[-1]
         if format=='csv' or format == 'txt':
             df = pd.read_csv(file_name, sep=self.config['local_dataset']['sep'])
@@ -102,10 +109,10 @@ class LoadData(ConfigState.State):
             self.app.log(f"The model {model_str} is not supported", LogLevel.ERROR)
             self.update(state=op_state.ERROR)
 
-@app_state(name='WriteSyntheticData', role=Role.BOTH)
+@app_state(name=WRITE_STATE, role=Role.BOTH)
 class WriteResults(AppState):
     def register(self):
-        self.register_transition('terminal', Role.BOTH)
+        self.register_transition(TERMINAL_STATE, Role.BOTH)
 
     def run(self):
         output_file=self.load('output_file')
@@ -113,5 +120,6 @@ class WriteResults(AppState):
         samples=self.load('synthetic_data')
         syn_df = samples
         syn_df.to_csv(output_file, index=False)
+        print('Synthetic Data Created Succesfully!!!')
         print(syn_df.head())
-        return 'terminal'
+        return TERMINAL_STATE

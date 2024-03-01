@@ -1,23 +1,37 @@
 fc_synthetic_data: 
   local_dataset:
-    data: data.csv
+    data: data.txt
     sep: ","
   synthetic_data_vault:
     model: GaussianCopula
     number_of_rows: 300
     synthetize_fields:
-      - w-education
-      - medexp
-      - sol
-      - h-occupation
-      - method
-      - w-religion
+      - age
+      - workclass
+      - education
+      - education-num 
+      - marital-status
+      - occupation 
+      - relationship
+      - race
+      - sex
+      - capital-gain
+      - capital-loss
+      - hours-per-week
+      - native-country
+      - prediction
     categorical_fields:
-      - w-education
-      - medexp
-      - sol
-      - h-occupation
-      - method
-      - w-religion
+      - workclass
+      - education
+      - education-num 
+      - marital-status
+      - relationship
+      - race
+      - sex
+      - native-country
+      - prediction
+    anonymize_fields:
+      - occupation : job 
+
   result:
     file: synthetic_data.csv
